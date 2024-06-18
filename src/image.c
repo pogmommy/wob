@@ -68,14 +68,68 @@ wob_image_destroy(struct wob_image *image)
 	free(image);
 }
 
+bool
+corners(float x,float y,float r)
+{
+	return ( (x < 0) && (y < 0) && ((x*x)+(y*y) > (r*r)) );
+}
+
+bool
+outside_corners(float x,float y,float l,float t,float h,float w,float r)
+{
+	float tl_x = ((x-l)-r)-x;
+	float tl_y = (y-t)-r;
+	bool tl = corners(tl_x,tl_y,r);
+	float bl_x = (x-l)-r;
+	float bl_y = ((t+h)-r)-y;
+	bool bl = corners(bl_x,bl_y,r);
+	float br_x = ((l+w)-r)-x;
+	float br_y = ((t+h)-r)-y;
+	bool br = corners(br_x,br_y,r);
+	float tr_x = ((l+w)-r)-x;
+	float tr_y = (y-t)-r;
+	bool tr = corners(tr_x,tr_y,r);
+	bool outside = ( (x < l) ||
+			(x > (l+w)) ||
+			(y < t) ||
+			(y > (t+h)) ||
+			tl ||
+			bl ||
+			br ||
+			tr );
+	return outside;
+}
+
 void
 fill_rectangle(uint32_t *pixels, size_t width, size_t height, size_t stride, uint32_t color)
 {
+	float fheight;
+	fheight = height;
+	float fwidth;
+	fwidth = width;
+	float fleft = 0;
+	float ftop = 0;
+
+	uint32_t cornercolor = 0;
+	float radius = 15;
+	printf("\n");
 	for (size_t y = 0; y < height; ++y) {
+		float fy;
+		fy = y;
 		for (size_t x = 0; x < width; ++x) {
-			pixels[x] = color;
+			float fx;
+			fx = x;
+			bool outside = outside_corners(fx,fy,fleft,ftop,fheight,fwidth,radius);
+			if (outside) {
+				pixels[x] = cornercolor;
+				printf(" ");
+			} else {
+				pixels[x] = color;
+				printf("0");
+			}
 		}
-		pixels += stride;
+	printf("\n");
+	pixels += stride;
 	}
 }
 
